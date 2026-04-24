@@ -17,6 +17,7 @@ const BASE_URL = "https://api.deepseek.com/v1";
 const DEFAULT_MAX_OUTPUT_TOKENS = 8000;
 const DEFAULT_CONTEXT_LENGTH = 1048576; // 1M context window
 const DEEPSEEK_SECRET_KEY = "deepseek.apiKey";
+const REASONING_EFFORT = "medium"; // "low" | "medium" | "high"
 
 /** The single DeepSeek model exposed to VS Code. */
 const DEEPSEEK_V4_PRO_MODEL: import("./types").HFModelItem = {
@@ -230,7 +231,8 @@ export class HuggingFaceChatModelProvider implements LanguageModelChatProvider {
                 stream: true,
                 max_tokens: Math.min(options.modelOptions?.max_tokens || 4096, model.maxOutputTokens),
                 temperature: options.modelOptions?.temperature ?? 0.7,
-                thinking: { type: "disabled" },
+                thinking: { type: "enabled" },
+                reasoning_effort: REASONING_EFFORT,
             };
 
 			// Allow-list model options

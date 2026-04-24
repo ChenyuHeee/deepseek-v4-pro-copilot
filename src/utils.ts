@@ -169,7 +169,7 @@ export function convertMessages(messages: readonly vscode.LanguageModelChatReque
 
 		let emittedAssistantToolCall = false;
 		if (toolCalls.length > 0) {
-			out.push({ role: "assistant", content: textParts.join("") || undefined, tool_calls: toolCalls });
+			out.push({ role: "assistant", content: textParts.join("") || undefined, tool_calls: toolCalls, reasoning_content: "" });
 			emittedAssistantToolCall = true;
 		}
 
@@ -179,7 +179,7 @@ export function convertMessages(messages: readonly vscode.LanguageModelChatReque
 
 		const text = textParts.join("");
 		if (text && (role === "system" || role === "user" || (role === "assistant" && !emittedAssistantToolCall))) {
-			out.push({ role, content: text });
+			out.push({ role, content: text, ...(role === "assistant" ? { reasoning_content: "" } : {}) });
 		}
 	}
 	return out;
