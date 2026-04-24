@@ -15,7 +15,7 @@ import { convertTools, convertMessages, tryParseJSONObject, validateRequest } fr
 
 const BASE_URL = "https://api.deepseek.com/v1";
 const DEFAULT_MAX_OUTPUT_TOKENS = 8000;
-const DEFAULT_CONTEXT_LENGTH = 128000;
+const DEFAULT_CONTEXT_LENGTH = 1048576; // 1M context window
 const DEEPSEEK_SECRET_KEY = "deepseek.apiKey";
 
 /** The single DeepSeek model exposed to VS Code. */
@@ -117,91 +117,26 @@ export class HuggingFaceChatModelProvider implements LanguageModelChatProvider {
 			return [];
 		}
 
-		const models = [DEEPSEEK_V4_PRO_MODEL];
+		const m = DEEPSEEK_V4_PRO_MODEL;
+		const contextLen = m.providers[0]?.context_length ?? DEFAULT_CONTEXT_LENGTH;
+		const maxOutput = DEFAULT_MAX_OUTPUT_TOKENS;
+		const maxInput = Math.max(1, contextLen - maxOutput);
 
-		const infos: LanguageModelChatInformation[] = models.flatMap((m) => {
-			const providers = m?.providers ?? [];
-			const modalities = m.architecture?.input_modalities ?? [];
-			const vision = Array.isArray(modalities) && modalities.includes("image");
-
-			// Build entries for all providers that support tool calling
-			const toolProviders = providers.filter((p) => p.supports_tools === true);
-			const entries: LanguageModelChatInformation[] = [];
-
-			if (toolProviders.length > 0) {
-				const contextLengths = toolProviders
-					.map((p) => (typeof p?.context_length === "number" && p.context_length > 0 ? p.context_length : undefined))
-					.filter((len): len is number => typeof len === "number");
-				const aggregateContextLen = contextLengths.length > 0 ? Math.min(...contextLengths) : DEFAULT_CONTEXT_LENGTH;
-				const maxOutput = DEFAULT_MAX_OUTPUT_TOKENS;
-				const maxInput = Math.max(1, aggregateContextLen - maxOutput);
-				const aggregateCapabilities = {
+		const infos: LanguageModelChatInformation[] = [
+			{
+				id: m.id,
+				name: "DeepSeek V4 Pro",
+				tooltip: "DeepSeek V4 Pro via DeepSeek API",
+				family: "huggingface",
+				version: "1.0.0",
+				maxInputTokens: maxInput,
+				maxOutputTokens: maxOutput,
+				capabilities: {
 					toolCalling: true,
-					imageInput: vision,
-				};
-				entries.push({
-					id: `${m.id}:cheapest`,
-					name: `${m.id} (cheapest)`,
-					tooltip: "Hugging Face via the cheapest provider",
-					family: "huggingface",
-					version: "1.0.0",
-					maxInputTokens: maxInput,
-					maxOutputTokens: maxOutput,
-					capabilities: aggregateCapabilities,
-				} satisfies LanguageModelChatInformation);
-				entries.push({
-					id: `${m.id}:fastest`,
-					name: `${m.id} (fastest)`,
-					tooltip: "Hugging Face via the fastest provider",
-					family: "huggingface",
-					version: "1.0.0",
-					maxInputTokens: maxInput,
-					maxOutputTokens: maxOutput,
-					capabilities: aggregateCapabilities,
-				} satisfies LanguageModelChatInformation);
-			}
-
-			for (const p of toolProviders) {
-				const contextLen = p?.context_length ?? DEFAULT_CONTEXT_LENGTH;
-				const maxOutput = DEFAULT_MAX_OUTPUT_TOKENS;
-				const maxInput = Math.max(1, contextLen - maxOutput);
-				entries.push({
-					id: `${m.id}:${p.provider}`,
-					name: `${m.id} via ${p.provider}`,
-					tooltip: `Hugging Face via ${p.provider}`,
-					family: "huggingface",
-					version: "1.0.0",
-					maxInputTokens: maxInput,
-					maxOutputTokens: maxOutput,
-					capabilities: {
-						toolCalling: true,
-						imageInput: vision,
-					},
-				} satisfies LanguageModelChatInformation);
-			}
-
-			if (toolProviders.length === 0 && providers.length > 0) {
-				const base = providers[0];
-				const contextLen = base?.context_length ?? DEFAULT_CONTEXT_LENGTH;
-				const maxOutput = DEFAULT_MAX_OUTPUT_TOKENS;
-				const maxInput = Math.max(1, contextLen - maxOutput);
-				entries.push({
-					id: m.id,
-					name: m.id,
-					tooltip: "Hugging Face",
-					family: "huggingface",
-					version: "1.0.0",
-					maxInputTokens: maxInput,
-					maxOutputTokens: maxOutput,
-					capabilities: {
-						toolCalling: false,
-						imageInput: vision,
-					},
-				} satisfies LanguageModelChatInformation);
-			}
-
-			return entries;
-		});
+					imageInput: false,
+				},
+			} satisfies LanguageModelChatInformation,
+		];
 
 		this._chatEndpoints = infos.map((info) => ({
 			model: info.id,
