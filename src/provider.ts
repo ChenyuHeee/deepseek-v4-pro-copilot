@@ -230,6 +230,7 @@ export class HuggingFaceChatModelProvider implements LanguageModelChatProvider {
                 stream: true,
                 max_tokens: Math.min(options.modelOptions?.max_tokens || 4096, model.maxOutputTokens),
                 temperature: options.modelOptions?.temperature ?? 0.7,
+                thinking: { type: "disabled" },
             };
 
 			// Allow-list model options
