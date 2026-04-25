@@ -19,7 +19,7 @@ const DEFAULT_CONTEXT_LENGTH = 1048576; // 1M context window
 const DEEPSEEK_SECRET_KEY = "deepseek.apiKey";
 const REASONING_EFFORT = "medium"; // "low" | "medium" | "high"
 
-const FLASH_CONTEXT_LENGTH = 65536; // 64K context window for flash
+const FLASH_CONTEXT_LENGTH = DEFAULT_CONTEXT_LENGTH; // 1M context window for flash
 
 /** DeepSeek models exposed to VS Code. */
 const DEEPSEEK_MODELS: import("./types").HFModelItem[] = [
