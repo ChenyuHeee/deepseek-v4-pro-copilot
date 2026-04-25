@@ -60,7 +60,7 @@ code --install-extension /path/to/deepseek-copilot.vsix
 ### Development
 
 ```bash
-git clone https://github.com/ChenyuHeee/deepseek-v4-pro-copilot
+git clone https://github.com/ChenyuHeee/deepseek-copilot
 cd deepseek-v4-pro-copilot
 npm install
 npm run compile
@@ -127,5 +127,5 @@ code --install-extension /path/to/deepseek-copilot.vsix
 
 ## Support & License
 
-- Issues: https://github.com/ChenyuHeee/deepseek-v4-pro-copilot/issues
+- Issues: https://github.com/ChenyuHeee/deepseek-copilot/issues
 - License: MIT
